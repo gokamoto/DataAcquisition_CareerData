@@ -1,5 +1,4 @@
 import urllib2
-import sys
 from bs4 import BeautifulSoup
 import re
 import time
@@ -11,6 +10,12 @@ _lvl2 = 1
 _lvl3 = -1
 
 def URLrequest(name):
+    """
+    Attempts to request/open a linkedin.com subdomain using urllib2
+    and retrieve the content using Beautiful Soup.
+    :param name: extension of the URL for the subdomain
+    :return: None if failed, soup if successful
+    """
 
     try:
         name = urllib2.quote(name)
@@ -54,6 +59,12 @@ def URLrequest(name):
 
 
 def URLgen(name):
+    """
+    Retrieves all URLs within the linkedin.com page and determines whether
+    they are further subdirectories or profiles, the returns as separate lists
+    :param name: extension of the URL for subdomain
+    :return: list of subdirectory URLs, list of profile URLs
+    """
 
     url_list = []
     profile_list = []
@@ -77,6 +88,12 @@ def URLgen(name):
     return url_list, profile_list
 
 def getRepeats(name):
+    """
+    Function to retrieve URLs for profiles within a page listing
+    profiles with the same member name
+    :param name: extension of the URL for subdomain
+    :return: list of user profile URLs
+    """
 
     results = []
 
@@ -91,10 +108,15 @@ def getRepeats(name):
                 match = re.sub('^http://\w+.linkedin.com', '', match)
                 results.append(match)
 
-
     return results
 
+
 def getNames():
+    """
+    Retrieve the URLs for the primary member directories organized
+    by starting character for the profiles
+    :return: list of directory URLs
+    """
     start_name = '/directory/people-a'
 
     soup = URLrequest(start_name)
@@ -109,6 +131,12 @@ def getNames():
 
 
 def getProfiles(name):
+    """
+    Finds all of the profile URLs from the given primary member directory
+    by traversing the directory tree structure
+    :param name: extension of the URL for primary directory
+    :return: list of profile URLs
+    """
 
     global _lvl1
     global _lvl2
@@ -140,15 +168,14 @@ def getProfiles(name):
         wait_time = round(max(1, 1.5 + random.gauss(0,1)), 2)
         time.sleep(wait_time)
 
-    #print "\nLevel 4"
-    # print "People directories"
-    # print level4
-    # print "Profiles"
-    # print profiles
-
     return profiles
 
 def getPerson(name):
+    """
+    Scrapes all of the relevant profile information from a profile URL
+    :param name: profile URL extension
+    :return: dictionary of profile information
+    """
 
     soup = URLrequest(name)
     if soup is None:
@@ -216,6 +243,7 @@ def getPerson(name):
 
     return {"name": name, "jobs": jobsDict}
 
+
 def main():
 
     global _lvl1
@@ -229,8 +257,6 @@ def main():
     nameDirectories = getNames()
     all_data  = {}
     all_titles = []
-    #print URLgen('/directory/people-b-1-1-1')
-    #print urllib2.quote("http://www.linkedin.com/pub/a%0A-d-p-t%C2%A3/9b/83a/674")
     for name in nameDirectories[letterStart:letterEnd]:
         all_profiles += getProfiles(name)
 
